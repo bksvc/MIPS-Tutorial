@@ -1,0 +1,107 @@
+# Command Format # 
+-> RISC Architecture
+-------------------------------------
+| OP | RS | RT | RD | SHAMT | FUNCT |  --> TOTAL 32 BIT
+-------------------------------------
+1- OP: Operations ( 6bit )
+2- RS: Source Register ( 5bit )
+3- RT: Target Register ( 5bit )
+4- RD: Destination Register ( 5bit )
+5- SHAMT: Shift Amount ( 5bit )
+6- FUNCT: Functions ( 6bit )
+
+
+R tipi(Register Type) komut formatı: Tüm operandları register olan komutlar ve shift komutları
+-> Opcode her zaman "000000" ile başlar
+-> Komutun kimliğini "funct" belirler
+
+
+I tipi(Immediate Type) komut formatı: Load, Store, Branch ve Immediate komutları
+-------------------------------------
+| OP | RS | RT |        ADRESS      |  --> TOTAL 32 BIT
+-------------------------------------
+1- OP: Operations ( 6bit )
+2- RS: Source Register ( 5bit )
+3- RT: Target Register ( 5bit )
+4- Address: 16bit
+
+J tipi(Jump Type) komut formatı: Jump ve Call komutları
+-------------------------------------
+| OP |            ADRESS            |  --> TOTAL 32 BIT
+-------------------------------------
+1- OP: Operations ( 6bit )
+2- Address: 26bit
+
+
+
+# REGISTER TABLOSU #
+İSİM    | Adres Değeri   | Kullanım
+------------------------------------
+$zero   | 0              | Sabit 0 değeri
+$at     | 1              | Assembler için ayrılmıştır
+$v0-$v1 | 2-3            | Sub-routine sonuç register
+$a0-$a3 | 4-7            | Sub-routine argümanlar
+$t0-$t9 | 8-15, 24-25    | Geçici işlem parametreleri(temporaries)
+$s0-$s7 | 16-23          | Kaydedilmiş parametreler
+$k0-$k1 | 26-27          | İşletim sistemi kernel için ayrılmıştır
+$gp     | 28             | Global Pointer
+$sp     | 29             | Stack Pointer
+$fp     | 30             | Frame Pointer
+$ra     | 31             | Return Address
+
+R Tipi Örnek:
+Komut : add $t0,      $s2,     $t0
+            (target)  (source) (destination)
+
+---------------------------------------------------
+| OP     | RS    | RT    | RD    | SHAMT | FUNCT  |
+| 000000 | 10010 | 01000 | 01000 | 00000 | 100000 |
+---------------------------------------------------
+NOT: op kodu 0,çünkü r tipi komutlarda funct kısmına bakılır
+NOT2: RS(source register) kısmı 18 çünkü register tablosundaki s2'ye yani 18'e denk gelir(s0=16,s1=17,"s2=18")
+NOT3: RT(target register) kısmı 8 çünkü tabloda 8 olarak verilmiştir("t0=8")
+NOT4: RD(destination register) kısmı 8 çünkü tabloda 8 olarak verilmiştir("t0=8")
+
+# R-Type Opcode/Function Instructions #
+
+Istruction | Opcode
+----------------------
+add        | 100000
+addu       | 100001
+addi       | 001000
+addiu      | 001001
+and        | 100100
+andi       | 001100
+div        | 011010
+divu       | 011011
+mult       | 011000
+multu      | 011001
+
+I Tipi Örnek:
+Komut : addi $sp, $sp, 4
+
+
+---------------------------------------------------
+| OP     | RS    | RT    |         ADDRESS        |
+| 001000 | 11101 | 11101 |     0000000000000100   |
+---------------------------------------------------
+NOT: stack pointer'ın adresi 29 bu yüzden RS ve RT kısmında 29 olarak yazıldı binary cinsinden
+NOT2: Immediate 4 olduğu için adres kımında 4 ifade binary cinsinden yazıldı
+
+J Tipi Örnek:
+Komut : j Label1
+> Label1 ile temsil edilen adres 4194340 ise;
+
+-----------------------------------------
+| OP     |           ADDRESS            |
+| 000010 |  00000100000000000000001001  |
+-----------------------------------------
+
+# J-Type Opcode/Function Instructions #
+
+Istruction | Opcode
+----------------------
+j          | 000010
+jal        | 000011
+jalr       | 001001
+jr         | 001000

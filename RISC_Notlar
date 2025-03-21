@@ -1,0 +1,403 @@
+ISA = Instruction Set Architecture(Komut Seti Mimarisi)
+
+# RISC FELSEFESI #
+1- Komut uzunluğu ve formatı sabit
+2- Adresleme modeli sabit
+3- Operaston sayısı sınırlı(özel işlem yok)
+4- Load-Store komut set: 
+4.1- Bellek Erişim
+4.2- İŞLEMLER(ALU,Multiply/Divide,hift...)
+
+MIPS = Microprocessor Without Interlocked Pipeline Stages
+
+
+# MIPS Command Instruction
+-> Temel çalışma mantığında sırasıyla 4 adet temel bileşen vardır.
+
+1- İşlem adı
+2- Sonucun saklanacağı kaynak(source)
+3- Birinci işlenen veri(operand)
+4- İkinci işlenen veri(operand)
+
+# C/C++ ve MIPS Örneği
+
+C/C++ -> a = b + c;
+MIPS ->   add      a,        b, c   AÇIKLAMA: yukardaki kodda eşitliğin sol tarafı(a) en önce yazılır "b" ve "c" operandlardır "add" ise işlemi belirtir
+        (işlem) (kaynak)  (operands)
+NOT: a,b ve c birer registerdır.
+NOT2: "add" toplama anlamına gelir
+
+ÖZET: C ve C++ gibi dillerde "a = b + c;" mips mimarisinde "add a, b, c" olarak ifade edilir
+
+# MIPS KURALLARI #
+1- Her satıran yazılan komut aynı satırda bitmek zorundadır 1 den fazla yazamayız ilgili kodla ilgili
+2- Birim zamanda(clock cycle) sadece 1 komut gerçekleştirilir
+
+"KRİTİK NOT": -> '$' <- işareti register kavramını ifade eder
+
+
+## MIP COMMNAD OPERANDS ##
+NOT: MIPS bir Load/Store mimarisidir, Aritmetik/mantık komutları bellek verisiyle doğrudan çalışmaya izin vermez. veriler önce registera çekilmelidir
+NOT2: 32 adet(32 bit) genel amaçlı register vardır
+NOT3: 32 bit genişliğindeki her register satırına "Word" denir
+NOT4: "Daha Küçük Daha Hızlıdır" kuralı gereği 33 adet Register, 32 adet register yapısına göre daha yavaştır.
+#-> Register Operands
+add: operand1 ve operand2 parametrelerini toplayıp source parametresine yazar.
+sub: operand1 ve operand2 parametrelerini çıkarıp source parametresine yazar.
+
+ÖRNEK:
+        C/C++ Kodu: f = (g + h) - (i + j);
+
+ÖRNEK NOTU: ($s0,$s1,$s2,$s3,$s4 regsterları sırasıyla f,g,h,i,j değerlerini içeriyor kabul edelim)
+        add $t0, $s1, $s2
+        add $t1, $s3, $s4
+        sub $s0, $t0, $t1
+
+#-> Integer Operands
+addi: Hemen toplama işlemi için kullanılır(kurallardan çok kullanılanı hızlı yap mantığından gelir, register ve belleği işgal etmez)
+NOT: burada sadece 1 adet operand sabit olabilir diğer operand mutlaka register olmak zorundadır ayrıca sourceda mutlaka register olmalıdır
+
+ÖRNEK:
+        C/C++ Kodu: a = a + 4;
+
+ÖRNEK MIPS:
+                addi $s0, $s0, 4
+
+NOT: MIPS Assembly kodlamada tam sayılar ondalık, onaltılık(hexadecimal) veya sekizlik(octal) sayı tabanında ifade edilebilir
+NOT: Sayılar negatif olabilir, eğer negatif olur ise bu sayılar "signed" şeklinde ifade edilir.
+
+#-> Memory Operands
+NOT: Bellek tek boyutlu bir "Array" gibidir
+NOT2: Bellekteki veriye erişmek için, komutlar mutlaka bellek adresini belirtmek zorundadır
+NOT3: Bellekte hem komutlar, hemde veriler saklanır
+
+GÖRSEL ÖRNEK:
+Memory Organization -> 
+        -------------------------------------------------------------------------------
+Memory: |...| Komut-6 | Komut-7 | ... | ... | Son Komut | Veri-0 | Veri-1 | ... | ... |
+        -------------------------------------------------------------------------------
+        Bu örnekte 2 adet veri tipi var, 1 komutlar 2, veriler
+
+Memory NOT: belleğin komuta ait kısmına veri, veriy ait kısmına komut kaydedemeyiz
+NOT4: Register ile Bellek arasında veri transferi yapacak bellek komutlarına ihtiyaç vardır, bunada Veri Transfer Komutları(Data Transfer Instructions) denir
+
+#->-> MIPS Memory Organization Details
+NOT: Byte adresleme yetersiz bulunduğu için "word" adı veriln bellek satırları kullanılır.
+NOT2: 32bit,48bit ve 64bit wordler olabilir
+NOT3: MIPS 32bit uzunluğundaki "word" ler için "BYTE ADRESLEME" kullanır
+KRİTİK NOT: Adresler her zaman 4 sayısının katları şeklinde olur
+KRİTİK NOT2: MIPS Mimarisinde bellek "bir boyutlu bir byte dizisi" olarak düşünülür, yani her bellek hücresi 1 byte(8bit) boyutundadır
+
+AÇIKLAMA "1 byte = 8 bit" eder, RISC mimarisi "32bit"lik bir mimaridir bu yüzden "4 byte = 32 bit eder" bu sayede, "word"un adreslemesi her zaman 4 sayısının katları şeklinde olur
+
+Memory Organization Array Örneği:
+         -------------------------------------------
+Array_A: | a[0] | a[1] | a[2] | a[3] | a[4] | a[5] |
+         -------------------------------------------
+         NOT: Her bir bellek satırı "32bit"tir
+
+KRİTİK NOT:: "&a[0] = 0" burada bulunan "a[0]" başında bulunan ampersand("&") işareti "a[0]"a ait bellek lokasyonunun adresini temsil eder 
+
+lw:(Load Word) Bellekten registera veri transferi gerçekleştirir(BELLEĞE OKUMA YAPAR)
+ÖRNEK:
+        $s0 = &a[0] AÇIKLAMA: a[0] arrayinin adresini s0 registerına kaydet
+        lw $s1, 100($s0) AÇIKLAMA: s0 registerına kaydedilen a0 arrayının adresinde 100 byte kadar ilerle ve bu değeri s1e kaydet
+
+sw:(Store Word) Registerdan belleğe veri transferi gerçekleştirir(BELLEĞE YAZMA YAPAR)
+ÖRNEK:
+        $s0 = &a[0] AÇIKLAMA: a[0] arrayinin adresini s0 registerına kaydet
+        sw $s1, 100($s0) AÇIKLAMA: s0 registerinde barınan a[0] arrayinden 100 byte ilerle ve s1 register değerini a[0]dan 100 byte ilerlediğin yere yaz
+
+--> YAZMA VE OKUMA ÖRNEĞİ <---
+# C/C++ örneği #
+a[9] = h + a[8];
+
+$s3 = &a[0] # a0'ın adresini al ve s3 register'ına kaydet
+$s2 = h # s2 regiser'ına h'yi kaydet
+
+lw $t0, 32($s3) # s3 register'ında yani a0 arrayinde 32 byte kadar ilerle ve bunu geçici register t0'a kaydet
+add $t1, $s2, $t0 # t0'da barınan veri ile s2 register'ında barınan h'yi topla ve t1'e kaydet
+sw $t1, 36($s3) # adresi alınan a0 arrayinde a9'a kaydetmek için 36 byte ilerle ve t1'de bulunan veriyi a0'ın 36 byte ilerlenmiş haline yani a9 arrayine kaydet
+
+# LOGIC OPERANDS
+-> AND --> and,andi 
+-> OR --> or,ori
+-> XOR --> xor,xori
+-> NOT --> nor
+ÖRNEK:
+        and $t1, $t2, $t3 # $t1 = $t2 & $t3
+        or $t1, $t2, $t3 # $t1 = $t2 | $t3
+        xor $t1, $t2, $t3 # $t1 = $t2 ^ $t3
+
+        andi $t1, $t2, $t3 # $t1 = $t2 & 0x0F
+        ori $t1, $t2, $t3 # $t1 = $t2 | 0xF0
+        xori $t1, $t2, $t3 # $t1 = $t2 ^ 0xFF
+        NOT: 0x ile başlayanlar tamsayılardır
+
+# SHIFT OPERANDS
+NOT: bir sayının bitlerini sağa ya da sola hareket ettirmek için kullanılır
+2 tabanında çarpma bölme yapmak için kullanılır
+KRİTİK NOT: sola 1 birin shift etmek sayıyı 2 ile çarpmaktır, sağa 1 birim shift etmek sayıyı 2 ile bölmektir
+
+#OPERANDS
+sll: Sabit bir shift kadar sola logic shift et
+ÖRNEK: sll $t2,$t3,2 # $t2 = $3 << 2
+
+sllv: shift logic left variable, yani bir sayıyı sabit sayı ile değil registerda bulunan bir değişkene göre shift et
+ÖRNEK: sllv $t3,$t4,$t5 # $t3 = $t4 << $t5
+
+sra: shift right arithmetic, sağ aritmetik shift yap
+ÖRNEK: sra $t4,$t3,1 # $t4 = $t3 >> 1
+
+srav: shift right arithmetic variable, bir sabit sayıya göre değil registerdaki parametereye göre sağ shift yap
+ÖRNEK: srav $t7,$t2,$t4 # $t7 = $t2 >> $t4
+
+srl: shift right logic, sağ logic shift
+ÖRNEK: srl $t2,$t3,7 # $t2 = $t3 >> 7
+
+srlv: shift right logic variable
+ÖRNEK: srlv $t3,$t4,$t6 # $t3 = $t4 >> $t6
+
+
+# MDU - Multiply Divide Unit
+NOT: Bu işlem birimi "High" ve "Low" olarak 2 adet registera bağlıdır 
+NOT2: HI(High) Sonucun üst 32 biti(veya kalan), LO(Low) Sonucun alt 32 biti(veya bölüm) ifade eder
+# MDU COMMANDS INSTRUCTIONS
+-> Multiply: "mult" ve "multu"
+mult: negatif sayılar dahil işaretli sayılarla çarpma yapılabilir
+multu: sadece pozitif sayılar çarpma yapabilir, u: unsigned yani işaretsiz anlamını temsil eder
+
+KRİTİK NOT: Çarpım sonucunu istenen registera almak için 2 adet komut çalıştırmak gerekir
+
+mflo: LO registerında bulunan datayı alır
+mfhi: HI registerıda bulunan datayı alır
+ÖRNEK:
+        mult $s2, $s3 # (HI, LO) = $s2 x $s3
+        mfhi $t1      # $t1 = HI
+        mflo $t1      # $t1 = LO
+
+-> Divide: "div" ve "divu"
+div: negatif sayılarla bölme yapar
+divu: sadece pozitif sayılarla bölme yapar
+ÖRNEK:
+        div $s2, $s3 # LO = $s2 / $s3(Bölüm)
+                     # HI $s2 % $s3 (Kalan)
+        mfhi $t1     # $t1 = HI -> Kalan data t1'e alındı
+        mflo $t0     # $t0 = LO -> Bölüm sonucu datasını t0'a aldık
+
+KRİTİK MANTIK YORDAMI: çarpma işleminde 32*32 ile 64 bitte veri saklanır fakat bölmede "HI" ve "LO" olmasının nedeni, bölüm ve kalanın 32 bit 32 bit şeklinde ayırmak
+içindir. Örneğin bölmede bölüm ilk 32 bit kalan diğer 32bitte saklanır bu yüzden "HI" ve "LO" kullanılır.
+
+# CONDITIONAL STRUCTURES
+NOT: Koşullu komutlar "branch" koşulsuz komutlar "jump" olarak adlandırılır
+NOT2: Fonksiyonlar "string" olarak isimlenirilir
+ÖRNEK:
+        testfunction:
+
+beq: Eşitse Atla(Branch Equal)
+ÖRNEK:
+        beg $t1, $t2 Label1 # $t1 içeriği $t2'ye eşitse Label1 konumuna atla
+
+bne: Eşit Değilse Atla(Branch Not Equal)
+ÖRNEK:
+        bne $t1, $t2, Label1 # $t1 içeriği $t2'ye eşit değilse Label1 konumuna atla
+
+slt: Küçükse atama yap(Set On Less Than)
+ÖRNEK:
+        slt $s1, $s2, $s3 # $s2 < $s3 => $s1 = 1, değilse $s1 = 0
+        #NOT: s2, s3'ten küçükse 1 büyükse 0 olacak s1'in değeri
+
+slti: Sayıdan küçükse atama yap(Set On Less Than Immediate)
+ÖRNEK:
+        slti $s1, $s2, 100 # $s2 100'den küçükse s1 değeri 1, büyükse 0 olacak s1'in değeri
+j: Atla(Jump)
+ÖRNEK:
+        j Label1 # Label1 konumuna atla
+
+# C/C++ çalışma #
+if (a != b)
+ c = a + b;
+else
+ c = a - b;
+# ASM #
+# a,b,c sırasıyla s1,s2,s0 registerında varsayalım
+bne $s1, $s2 birinciasama
+sub $s0, $s1, $s2
+j end
+birinciasama:
+        add $s0, $s1, $s2
+end
+# SUB-ROUTINES (PROCEDURES)
+
+NOT: çağırılan program argümanları a0-a3 arası bir registera koyar
+NOT2: prosedür görevni tamamlar ve sonuçları v0-v1 içerisine koyar ve jr $ra komutunu çalıştırır
+KRİTİK NOT: Bu süreç belleğin "STACK" kısmında gerçekleşir
+
+# SUB ROUTINES COMMAND OPERANDS
+jal: Atla ve bağla(Jump-And-Link)
+ÖRNEK:
+        jal procedureName
+        NOT: Parametresinde belirtilen prosedüre atlamayı sağlar ve geri dönebilmek için dönüş adresini (return address) registerına kaydeder
+
+jr: Atla ve Dön (Jump-And-Return)
+        ÖRNEK: jr $ra
+        NOT: $ra da belirtilen dönüş adresine koşulsuz atlar
+
+KRİTİK NOT: DYNAMIC DATA Bölgesi elemanları, stack ve heap olarak geçer
+HEAP: Programın belleği
+STACK: tamamen sub routines ve prosedürlerle alakalıdır
+
+# -> Stack Pointer nedir ?
+Stack pointer en üst(son kullanılan yeri) gösterir, MIPS stack "aşağıya doğru büyür"(adresler azalır)
+NOT: Stack pointer LIFO(Last In First Out) profilini uygular
+NOT2: Fonksiyon çağrılarında geçici veriler, $ra yı local değişkenlerde saklamak ve fonksiyonlardan çıkarken her şeyi geri yüklemek için kullanılır
+
+KRİTİK NOT: Stack yapısında 2 ayrı başlık vardır
+
+Yazma Sırası  | Adres
+------------------------------
+ilk veri           0x7FFFFFFC
+ikinci veri        0x7FFFFFF8
+üçüncü veri        0x7FFFFFF4
+dördüncü veri      0x7FFFFFF0
+
+
+yukarıdaki tabloda 2 adet yapı vardır 1 veriler 2 adresleme, stack alanında adresleme yaparken ramin en üstünden başlar
+bu yüzden en yüksek adres yazılır oraya, en yüksek adresten veri yazıldıkca aşağıya doğru veri büyür fakat en yüksekten başladığı için adreseme, 4byte(1 word)kadar
+düşer bu yüzden her veri 4er 4er hizalanır(1 word kadar) bu sayede veri bütünlüğü korunur ve ulaşımı kolaylaşır.
+
+ÖRNEK:
+# C #
+int test_func(int a, int b, int c, int d)
+{
+        int loc;
+        loc = (a+b) - (c+d);
+        return loc;
+}
+a,b,c,d -> $a0,$a1,$a2,$a3
+loc = $s0
+
+# ASM #
+addi $sp, $sp, -4
+sw $s0, 0($sp)
+add $t0, $a0, $a1
+add $t1, $a2, $a3
+sub $s0, $t0, $t1
+add $v0, $s0, $zero
+lw $s0, 0($sp)
+add $sp, $sp, 4
+jr $ra
+# AÇIKLAMA # 
+1; stack pointer'a -4 byte(1 word) geri gitti yani ram'in üstüne 1 veri ekledi
+2; s0 register'ına stack point'in 0. adresini kaydetti yani yazdı
+3; t0 geçici belleğine a0 ve a1'i toplayıp yazdı
+4; t1 geçici belleğine a2 ve a3'ü toplayıp yazdı
+5; s0 register'ına t0 ve t1 çıkarma işlemini yazdı
+6; sonra fonksiyon görevi bitince v0-v1 arasına çıktıyı eklediği için add ile s0 registerını aldı ve 0 ile toplayıp v0'a yazdı.
+7; sonrasında stack pointer'ın 0. adresini okudu ve s0'a kaydetti, fakat s0'daki veri v0'da olduğu için bundan etkilenmedi
+8; stack pointer'da -4 byte(1 word) geri gittiği adresi, yani ramin üstüne 1 eklediği veriyi geri aldı
+9; jr $ra return etti
+
+#Genel açıklamam şu şekilde: işlemi ram'e aldı ve ram üzerine matametiğini işleyip tekrar cpu'ya getirdi ve sonucu verdi.
+#yani bu dönen bütün 1 word azalt ve ram'e ekle sonra işlemi ram'de yap ve tekrar cpu'ya getir olayıdır.
+
+li: Load Immediate anlamına gelir
+lb: load byte(sadece 1 byte okur), NOT: lw 4byte bellekten okuma yapar 
+lbu: load byte unsigned(işaretsiz çalışmak için kullanılır)
+
+sb: sadece 1 byte yazar(store byte) NOT: sw 4byte belleğe yazma yapar
+
+
+
+# DATAPATH & PIPELINE'ning #
+pipelinening genel olarak arada bulunan verinin, stall etmemesi (beklemeye alınmaması) için geiştirlen bir metoddur
+detaylı açıklama;
+        bir kod parçasından, 1. işlem başlatıldığında 2. işlemin 1. işlemden bağımsız olarak fetch edilmesine olanak sağlar bu sayede 1. süreç devam ederken 2. süreç
+        çoktan başlamış olur
+ÖRNEK:
+        lw $t0, 0($t1)
+        lw $t2, 4($1)
+        addi $s1, $t0, 0xA
+        addi $s0, $t2, 0x5
+        NOT: bu sayede t1in 0. bölümünden alınan veri 1. addi kısmında işlenirken t2 verisi arkasın hemen eklenip 2. addi kısmında işlenir bu sayede süreç beklemeye girmez
+
+nop: hiç bir şey yapma
+
+
+## KRİTİK KONU ##
+-> RECURSIVE POWER FUNCTION
+
+Açıklama: gerekli koşul sağlanana kadar kendini tekrar eden fonksiyonlara verilen isimdir
+ÖRNEK BASH SCRIPT:
+        #!/bin/bash
+        a=0
+        function run(){
+        if [ "$a" == "30" ];then
+                echo "prog stop"
+        else
+                a=$((a+1))
+                echo "A'nın değeri: $a"
+                run
+        fi
+        }
+        run
+        AÇIKLAMA: fonksiyon 30 değerini görene kadar içeride kendini çağırmya devam ediyor, 30 değerini gördükten sonra otomatik olarak duruyor.
+        Genel olarak sürekli bir şekilde döngü kullanmadan koşul devam ettiği sürece kendini çağırma işlemine verilen fonksiyon adıdır
+
+Bash kodunun MIPS örneği: 
+        .data
+        msg:     .asciiz "Sayac: "
+        son:     .asciiz "prog stop\n"
+        newline: .asciiz "\n"
+
+        .text
+        .globl main
+
+        main:
+        li $a0, 0        # a = 0
+        jal run          # run(a)
+
+        li $v0, 10
+        syscall
+
+        # Recursive fonksiyon: run(a)
+        run:
+        # Base case: a == 30 → dur
+        li $t0, 30
+        beq $a0, $t0, stop
+
+        # Ekrana "Sayac: a"
+        li $v0, 4
+        la $a0, msg
+        syscall
+
+        li $v0, 1
+        move $a0, $a1     # sayiyi yaz
+        syscall
+
+        li $v0, 4
+        la $a0, newline
+        syscall
+
+        # stack'e kaydet
+        addi $sp, $sp, -8
+        sw $ra, 4($sp)
+        sw $a1, 0($sp)
+
+        # a = a + 1
+        addi $a1, $a1, 1
+        jal run
+
+        # geri dönüş
+        lw $ra, 4($sp)
+        lw $a1, 0($sp)
+        addi $sp, $sp, 8
+        jr $ra
+
+        stop:
+        li $v0, 4
+        la $a0, son
+        syscall
+        jr $ra
+
+NOT: ".globl test" bu ifade programın giriş noktasını belirtir

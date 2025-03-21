@@ -1,0 +1,38 @@
+# 16'lık sayı sistemi detaylı açıklama ve hesaplama
+GENEL MANTIK : 0x10 olduğunda (1*16 + 0) olucak bu olan + 0ı sağ tarafa hex ilerledikce 16nin çarpım katınıda 0xten sonra yazıyoruz 
+bu sayede 0xten sonra 16 kaç katı ile çarpılırsa örneğin (2*16+5) ise cevap: 0x25tir diye
+ayrıca sınır 15, 15ten sonra 0lanır ve 1 üst çarpana geçer.
+
+-- GENEL MANTIK AÇIKLAMA --
+0xF = 15
+0x? = ?, cevap şu 0xFten sonra (1*16 + 0) olur bu sayede çarpan başa yazılır ve sonrasında attığı miktar kadar yanına
+3*16 + 8 = ?, 0x38 
+
+-- TEORIK AÇIKLAMA --
+
+1. Sınır kaç?
+Hexde sınır 0xFdir → yani 15tir.
+
+Bu sınır dolunca ne olur?
+✔️ 1 üst basamağa geçilir
+✔️ Sağ taraf 0lanır
+✔️ Sola 1 eklenir
+
+2. 0x10 = NEDİR?
+0x10 = (1 * 16) + 0 = 16
+
+✔️ Sağdaki 0, küçük basamak
+✔️ Soldaki 1, kaç tane 16lık grup olduğunu gösterir
+🧠 Her basamak 16’lık çarpan gücüne göre değer taşır.
+
+3. Genel Formül:
+0xAB = (A * 16) + B
+
+# GENEL ÖRNEK #
+0x0	(0 * 16) + 0	0	
+0xF	(0 * 16) + 15	15	Sınır!
+0x10	(1 * 16) + 0	16	Yeni basamak ✅
+0x11	(1 * 16) + 1	17	
+0x1F	(1 * 16) + 15	31	
+0x20	(2 * 16) + 0	32	
+0x25	(2 * 16) + 5	37	--> GENEL MANTIK ÖRNEĞİ NOKTASI
